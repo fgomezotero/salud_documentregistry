@@ -1,0 +1,16 @@
+/** Sample queries
+*/
+
+query selectAllDocumentRegistry {
+  description: "Select all document registry"
+  statement:
+      SELECT uy.agesic.salud.DocumentEntryAsset
+}
+
+query selectDocumentRegistryByPatient {
+  description: "Select all document registry by patient ID"
+  statement:
+      SELECT uy.agesic.salud.DocumentEntryAsset
+          WHERE (sourcepatientid == _$ci)
+}
+

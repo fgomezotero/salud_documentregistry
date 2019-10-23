@@ -1,0 +1,116 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace uy.agesic.salud
+
+/*
+ * Participant definitions
+ */
+participant Institution identified by oid {
+  o String oid // oid de la institución 
+  o String name // nombre de la institución
+}
+
+/*
+ * Enum definitions
+ */
+enum AvailabilityStatus {
+  o approved
+  o deprecated
+}
+
+enum ConfidentialyCode {
+  o N // Nivel Normal
+  o R // Nivel Restricted
+  o V // Very Restricted
+}
+
+enum RelationshipType {
+  o APND // (Append) El documento es un anexo del documento original, ambos quedan en estado approved
+  o XFRM // (Transform) El documento es una transformación del original ambos mantiene el estado approved
+  o RPLC // (Replace) El documento es una remplazo el documento original, pasando este a estado deprecated y el actual a approved
+  o XFRM_RPLC // (Transform with replace) El documento es una transformación y reemplazo del documento original pasando este a estado deprecated y el actual a approved
+}
+
+/*
+ * Concept definitions
+ */
+concept Author {
+  o String cedula
+  o String authorlocation // Dependencia o local de la institucion donde se generó el acto clínico
+  o String primernombre
+  o String segundonombre optional
+  o String primerapellido
+  o String segundoapellido optional
+  o String authorrole // Representa el rol del autor del documento
+  o String authorspecialty // Representa la especialidad del autor del documento
+}
+
+/*
+ *  Asset definitions 
+ */
+asset DocumentEntryAsset identified by uniqueid {
+  o String uniqueid  // identificador unico
+  o AvailabilityStatus availabilitystatus // representa el estado del documento (approved o deprecated)
+  o Integer amountofstudies // cantidad de estudios o precedimientos
+  o Author author // Persona responsable o autor del documento, pertenece a la institucion
+  --> Institution authorinstitution // Institución en la cual se generó el acto clínico
+  --> Institution byorderof optional // Institucion que indicó realizar el acto asistencial
+  o String classcode // Especifica el documento a alto nivel Ej("Hoja de cirugía")
+  o ConfidentialyCode confidentialycode // Especifica el nivel de seguridad y privacidad asociado al documento
+  o String[] eventcodelist // Lista que representa los actos clínicos que se están documentando
+  o String funder optional // Financiador del acto asistencial
+  o String practicesettingcode // Especifica la especialidad clínica realizada, una vez generado el documento
+  o String typecode // Especifica el tipo preciso de documento generado
+  o String comment // Descripción asociativa del documento que se está generando
+  o String sourcepatientid // Paciente al cual se le realizó el acto clínico del documento
+  o String title // Titulo del documento
+  o String hash //regex=/[A-z][A-z][0-9]{65}/ // Valor del hash del contenido del documento calculado con el algoritmo SHA 512
+  o String repositoryuniqueid // Indentificador único del repositorio en el cual se guardará el documento
+  o DateTime servicestarttime // Representa fecha y hora de inicio de la atención clínica
+  o DateTime servicestoptime // Representa fecha y hora de fin de la atención clínica
+  o String relation_uniqueid optional // Documento al que puedo o no relacionar el actual
+  o RelationshipType relationtype optional // Tipo de relación entre ambos documentos y la misma puede cambio el campo availabilitystatus de los documentos.
+}
+
+/*
+ * Transactions definitions
+ */
+ transaction RegisterDocumentSet {
+  o String uniqueid  
+  o AvailabilityStatus availabilitystatus
+  o Integer amountofstudies
+  o Author author 
+  --> Institution authorinstitution
+  --> Institution byorderof optional
+  o String classcode 
+  o ConfidentialyCode confidentialycode
+  o String[] eventcodelist 
+  o String funder optional 
+  o String practicesettingcode
+  o String typecode 
+  o String comment 
+  o String sourcepatientid
+  o String title 
+  o String hash
+  o String repositoryuniqueid 
+  o DateTime servicestarttime 
+  o DateTime servicestoptime
+  o String relation_uniqueid optional
+  o RelationshipType relationtype optional   
+ }
+
+event RegisterDocument {
+  --> DocumentEntryAsset documententry
+}
